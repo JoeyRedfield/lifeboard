@@ -8,7 +8,7 @@ from app.services.sync_service import full_sync
 router = APIRouter(tags=["sync"])
 
 
-@router.post("/api/sync")
+@router.post("/sync")
 async def trigger_sync(db: AsyncSession = Depends(get_db)):
     """手动触发全量同步"""
     source = EzBookkeepingSource()
@@ -23,7 +23,7 @@ async def trigger_sync(db: AsyncSession = Depends(get_db)):
     return {"success": True, "result": result}
 
 
-@router.get("/api/sync/status")
+@router.get("/sync/status")
 async def sync_status(db: AsyncSession = Depends(get_db)):
     """获取同步状态（各表数据量）"""
     from sqlalchemy import text

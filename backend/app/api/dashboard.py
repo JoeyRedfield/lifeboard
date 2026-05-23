@@ -13,7 +13,7 @@ from app.schemas.dashboard import (
 router = APIRouter(tags=["dashboard"])
 
 
-@router.get("/api/dashboard/overview", response_model=OverviewResponse)
+@router.get("/dashboard/overview", response_model=OverviewResponse)
 async def dashboard_overview(
     year: int = Query(default=None),
     month: int = Query(default=None),
@@ -27,7 +27,7 @@ async def dashboard_overview(
 
 
 @router.get(
-    "/api/dashboard/trends",
+    "/dashboard/trends",
     response_model=list[MonthlyTrendItem],
 )
 async def dashboard_trends(
@@ -38,7 +38,7 @@ async def dashboard_trends(
 
 
 @router.get(
-    "/api/dashboard/categories",
+    "/dashboard/categories",
     response_model=list[CategoryBreakdownItem],
 )
 async def dashboard_categories(
@@ -54,7 +54,7 @@ async def dashboard_categories(
 
 
 @router.get(
-    "/api/dashboard/assets",
+    "/dashboard/assets",
     response_model=list[AssetTrendItem],
 )
 async def dashboard_assets(
