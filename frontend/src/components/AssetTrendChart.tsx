@@ -1,6 +1,10 @@
 import ReactECharts from "echarts-for-react";
 import type { AssetTrendItem } from "../types";
 
+const TEXT_SECONDARY = "#8b949e";
+const BORDER = "rgba(139,148,158,0.12)";
+const BLUE = "#58a6ff";
+
 interface Props {
   data: AssetTrendItem[];
 }
@@ -9,31 +13,52 @@ export default function AssetTrendChart({ data }: Props) {
   const option = {
     tooltip: {
       trigger: "axis",
+      backgroundColor: "rgba(13,17,23,0.95)",
+      borderColor: BORDER,
+      textStyle: { color: "#e6edf3", fontSize: 13 },
+      formatter: (params: any[]) => {
+        const month = params[0].axisValue;
+        const val = params[0].value;
+        return `<div style="font-weight:600;margin-bottom:4px">${month}</div>
+          <span>${params[0].marker} 总资产</span>
+          <span style="font-family:monospace;font-weight:600;margin-left:12px">¥${(val / 100).toFixed(2)}</span>`;
+      },
     },
     grid: {
-      left: 20,
-      right: 20,
-      top: 20,
-      bottom: 20,
+      left: 16,
+      right: 16,
+      top: 16,
+      bottom: 16,
     },
     xAxis: {
       type: "category",
       data: data.map((d) => `${d.year}-${String(d.month).padStart(2, "0")}`),
-      axisLabel: { rotate: 45 },
+      axisLabel: {
+        color: TEXT_SECONDARY,
+        fontSize: 11,
+        rotate: 45,
+      },
+      axisLine: { lineStyle: { color: BORDER } },
+      axisTick: { show: false },
     },
     yAxis: {
       type: "value",
       axisLabel: {
-        formatter: (v: number) => (v / 10000).toFixed(0) + "w",
+        color: TEXT_SECONDARY,
+        fontSize: 11,
+        formatter: (v: number) => "¥" + (v / 100).toFixed(0),
       },
+      splitLine: { lineStyle: { color: BORDER, type: "dashed" } },
     },
     series: [
       {
         type: "line",
-        data: data.map((d) => +(d.total_balance / 100).toFixed(0)),
+        data: data.map((d) => d.total_balance),
         smooth: true,
-        lineStyle: { color: "#6c5ce7", width: 2 },
-        itemStyle: { color: "#6c5ce7" },
+        symbol: "circle",
+        symbolSize: 6,
+        lineStyle: { color: BLUE, width: 2.5 },
+        itemStyle: { color: BLUE },
         areaStyle: {
           color: {
             type: "linear",
@@ -42,8 +67,8 @@ export default function AssetTrendChart({ data }: Props) {
             x2: 0,
             y2: 1,
             colorStops: [
-              { offset: 0, color: "rgba(108,92,231,0.25)" },
-              { offset: 1, color: "rgba(108,92,231,0.02)" },
+              { offset: 0, color: "rgba(88,166,255,0.2)" },
+              { offset: 1, color: "rgba(88,166,255,0.02)" },
             ],
           },
         },
@@ -52,17 +77,8 @@ export default function AssetTrendChart({ data }: Props) {
   };
 
   return (
-    <div
-      style={{
-        background: "#fff",
-        borderRadius: 12,
-        padding: 20,
-        boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
-      }}
-    >
-      <h3 style={{ marginBottom: 16, fontSize: 16, fontWeight: 600 }}>
-        资产变化趋势
-      </h3>
+    <div className="card chart-container">
+      <h3 className="card-title">资产变化趋势</h3>
       <ReactECharts option={option} style={{ height: 350 }} />
     </div>
   );
