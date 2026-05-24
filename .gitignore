@@ -29,5 +29,8 @@ Thumbs.db
 # Docker
 pgdata/
 
+# ezbookkeeping data (binary DB)
+ezbookkeeping-data/
+
 # Logs
 *.log
