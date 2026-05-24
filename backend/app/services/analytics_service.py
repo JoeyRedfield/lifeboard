@@ -6,10 +6,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import Transaction, Account, Category
 
-# ezbookkeeping transaction types
-TYPE_INCOME = 1
-TYPE_EXPENSE = 2
-TYPE_TRANSFER = 3
+# ezbookkeeping transaction types (from API)
+TYPE_INCOME = 2
+TYPE_EXPENSE = 3
 
 
 async def get_overview(db: AsyncSession, year: int, month: int) -> dict:

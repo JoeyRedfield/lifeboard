@@ -82,20 +82,27 @@ class EzBookkeepingSource(DataSourceBase):
     def _flatten_categories(
         self, categories: dict, result: list[CategoryData]
     ):
-        """展平层级分类结构（父分类含 subCategories 列表）"""
-        for cat_id, cat_data in categories.items():
-            if isinstance(cat_data, dict):
+        """展平层级分类结构
+
+        API 返回格式: {"1": [{...}, {...}], "2": [{...}, {...}]}
+        以 type 分组，值为分类列表，每个分类可含 subCategories
+        """
+        for type_key, cat_list in categories.items():
+            if not isinstance(cat_list, list):
+                continue
+            for cat_data in cat_list:
+                if not isinstance(cat_data, dict):
+                    continue
                 result.append(
                     CategoryData(
-                        id=int(cat_id),
+                        id=int(cat_data["id"]),
                         name=cat_data.get("name", ""),
                         type=cat_data.get("type", 0),
                         parent_id=int(cat_data.get("parentId", 0)),
                         hidden=cat_data.get("hidden", False),
                     )
                 )
-                sub_cats = cat_data.get("subCategories", [])
-                for sub in sub_cats:
+                for sub in cat_data.get("subCategories", []):
                     if isinstance(sub, dict):
                         result.append(
                             CategoryData(
