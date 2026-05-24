@@ -143,10 +143,18 @@ async def get_category_breakdown(
 async def get_asset_trends(
     db: AsyncSession, months: int = 12
 ) -> list[dict]:
-    """获取近 N 个月资产趋势（月末账户余额汇总）"""
+    """获取近 N 个月资产趋势（从当前余额倒推每月历史余额）"""
+    tz = datetime.timezone(datetime.timedelta(hours=8))
     now = datetime.datetime.now()
-    result = []
 
+    # 当前总资产
+    current_balance = await db.scalar(
+        select(func.coalesce(func.sum(Account.balance), 0))
+    )
+    current_balance = int(current_balance or 0)
+
+    # 从最早月到当月的每月净收支
+    monthly_net = []
     for i in range(months - 1, -1, -1):
         year = now.year
         month = now.month - i
@@ -154,14 +162,39 @@ async def get_asset_trends(
             month += 12
             year -= 1
 
-        total = await db.scalar(
-            select(func.coalesce(func.sum(Account.balance), 0))
-        )
+        last_day = calendar.monthrange(year, month)[1]
+        start_dt = datetime.datetime(year, month, 1, tzinfo=tz)
+        end_dt = datetime.datetime(year, month, last_day, 23, 59, 59, tzinfo=tz)
+        start_ts = int(start_dt.timestamp())
+        end_ts = int(end_dt.timestamp())
 
-        result.append({
+        income = await db.scalar(
+            select(func.coalesce(func.sum(Transaction.amount), 0)).where(
+                Transaction.type == TYPE_INCOME,
+                Transaction.transaction_time >= start_ts,
+                Transaction.transaction_time <= end_ts,
+                Transaction.hide_amount == False,
+            )
+        )
+        expense = await db.scalar(
+            select(func.coalesce(func.sum(Transaction.amount), 0)).where(
+                Transaction.type == TYPE_EXPENSE,
+                Transaction.transaction_time >= start_ts,
+                Transaction.transaction_time <= end_ts,
+                Transaction.hide_amount == False,
+            )
+        )
+        monthly_net.append({
             "year": year,
             "month": month,
-            "total_balance": int(total or 0),
+            "net": int(income or 0) - int(expense or 0),
         })
 
-    return result
+    # 倒推：每月月末资产 = 下月月末资产 - 下月净收支
+    balance = current_balance
+    for i in range(len(monthly_net) - 1, -1, -1):
+        monthly_net[i]["total_balance"] = balance
+        if i > 0:
+            balance -= monthly_net[i]["net"]
+
+    return monthly_net
