@@ -26,7 +26,9 @@
 ## 一、首次启动
 
 ```bash
-cd /Users/wuzhuoyi/Desktop/code/my-project
+cd my-project
+cp .env.example .env
+# 编辑 .env，填入 EZBOOKKEEPING_TOKEN 和 POSTGRES_PASSWORD
 docker compose up -d
 ```
 
@@ -50,7 +52,7 @@ ezbookkeeping 已配置 `EBK_SECURITY_ENABLE_API_TOKEN=true`。
 1. 打开 http://localhost:8080
 2. 登录后进入 **设置** → **API 令牌**
 3. 点击 **生成令牌**，复制生成的 Token
-4. 将 Token 填入 `docker-compose.yml` 的 `EZBOOKKEEPING_TOKEN` 字段
+4. 将 Token 填入 `.env` 文件的 `EZBOOKKEEPING_TOKEN` 字段
 5. 重启后端：`docker compose restart backend`
 
 ---
@@ -124,8 +126,10 @@ my-project/
 |---|---|---|
 | `DATABASE_URL` | PostgreSQL 连接串 | — |
 | `EZBOOKKEEPING_BASE_URL` | ezbookkeeping 地址 | `http://ezbookkeeping:8080` |
-| `EZBOOKKEEPING_TOKEN` | API 令牌（从 ezbookkeeping 网页端获取） | 已配置 |
+| `EZBOOKKEEPING_TOKEN` | API 令牌（从 ezbookkeeping 网页端获取） | 必填 |
 | `SYNC_INTERVAL_MINUTES` | 定时同步间隔（分钟） | `60` |
+
+所有环境变量在 `.env` 文件中配置，参考 `.env.example`。
 
 ---
 

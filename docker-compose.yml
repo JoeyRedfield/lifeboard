@@ -2,15 +2,15 @@ services:
   db:
     image: postgres:16-alpine
     environment:
-      POSTGRES_USER: lifeboard
-      POSTGRES_PASSWORD: lifeboard
-      POSTGRES_DB: lifeboard
+      POSTGRES_USER: ${POSTGRES_USER:-lifeboard}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD?请先在 .env 文件中设置 POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-lifeboard}
     ports:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U lifeboard"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-lifeboard}"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -31,10 +31,12 @@ services:
     build: ./backend
     ports:
       - "8000:8000"
+    env_file:
+      - .env
     environment:
-      DATABASE_URL: postgresql+asyncpg://lifeboard:lifeboard@db:5432/lifeboard
-      EZBOOKKEEPING_BASE_URL: "http://ezbookkeeping:8080"
-      EZBOOKKEEPING_TOKEN: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyVG9rZW5JZCI6IjIzNDc3OTM5ODYzOTI3NzUyNzUiLCJqdGkiOiIzNzc4OTU4MzcxNzMwNzUxNDg4IiwidXNlcm5hbWUiOiJ3enkiLCJ0eXBlIjo4LCJpYXQiOjE3Nzk1OTgzMzUsImV4cCI6MTEwMDI5NzAzNzJ9.Z-1g3rm2ax-bO_hA5Ovx__mGuKcXRSJOPKuC6h09bWk"
+      DATABASE_URL: ${DATABASE_URL}
+      EZBOOKKEEPING_BASE_URL: ${EZBOOKKEEPING_BASE_URL:-http://ezbookkeeping:8080}
+      EZBOOKKEEPING_TOKEN: ${EZBOOKKEEPING_TOKEN?请先在 .env 文件中设置 EZBOOKKEEPING_TOKEN}
     depends_on:
       db:
         condition: service_healthy

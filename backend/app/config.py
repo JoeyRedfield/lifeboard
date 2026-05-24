@@ -2,7 +2,7 @@ from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-    database_url: str = "postgresql+asyncpg://lifeboard:lifeboard@localhost:5432/lifeboard"
+    database_url: str = ""
     ezbookkeeping_base_url: str = ""
     ezbookkeeping_token: str = ""
     sync_interval_minutes: int = 60
