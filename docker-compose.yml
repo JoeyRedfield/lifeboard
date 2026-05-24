@@ -23,8 +23,8 @@ services:
       - "8000:8000"
     environment:
       DATABASE_URL: postgresql+asyncpg://lifeboard:lifeboard@db:5432/lifeboard
-      EZBOOKKEEPING_BASE_URL: ""
-      EZBOOKKEEPING_TOKEN: ""
+      EZBOOKKEEPING_BASE_URL: "http://host.docker.internal:8080"
+      EZBOOKKEEPING_TOKEN: "你的API令牌"
     depends_on:
       db:
         condition: service_healthy
