@@ -17,6 +17,12 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="LifeBoard API", version="0.1.0", lifespan=lifespan)
 
+from app.mcp_server import mcp
+
+mcp_app = mcp.http_app()
+app.mount("/mcp", mcp_app)
+app.mount("/sse", mcp_app)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
