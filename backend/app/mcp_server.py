@@ -9,10 +9,10 @@ import calendar
 import datetime
 
 from fastmcp import FastMCP
-from sqlalchemy import and_, select, func
+from sqlalchemy import and_, or_, select, func
 
 from app.database import async_session
-from app.models import Transaction, Account, Category
+from app.models import Tag, Transaction, Account, Category
 
 # ============================================================================
 # 常量
@@ -330,16 +330,27 @@ async def get_asset_trends(months: int = 12) -> str:
 async def search_transactions(
     keyword: str = "",
     category: str = "",
+    tag: str = "",
     limit: int = 20,
 ) -> str:
-    """按备注关键词和分类名搜索交易记录。
+    """按备注关键词、分类名和标签名搜索交易记录。
 
     Args:
         keyword: 备注关键词（模糊匹配，ILIKE）
         category: 分类名（模糊匹配，ILIKE）
+        tag: 标签名（模糊匹配，ILIKE）
         limit: 返回条数上限，默认 20
     """
     async with async_session() as db:
+        # 构建标签 ID→名称 映射
+        tag_result = await db.execute(select(Tag.id, Tag.name))
+        tag_map: dict[str, str] = {str(row[0]): row[1] for row in tag_result.all()}
+
+        # 按标签名过滤时，先找出匹配的 tag IDs
+        tag_filter_ids: list[str] = []
+        if tag:
+            tag_filter_ids = [tid for tid, tname in tag_map.items() if tag.lower() in tname.lower()]
+
         query = (
             select(
                 Transaction.transaction_time,
@@ -347,6 +358,7 @@ async def search_transactions(
                 Category.name,
                 Transaction.amount,
                 Transaction.comment,
+                Transaction.tag_ids,
             )
             .join(Category, Transaction.category_id == Category.id, isouter=True)
         )
@@ -356,6 +368,11 @@ async def search_transactions(
             conditions.append(Transaction.comment.ilike(f"%{keyword}%"))
         if category:
             conditions.append(Category.name.ilike(f"%{category}%"))
+        if tag_filter_ids:
+            tag_conditions = [
+                Transaction.tag_ids.ilike(f"%{tid}%") for tid in tag_filter_ids
+            ]
+            conditions.append(or_(*tag_conditions))
         if conditions:
             query = query.where(and_(*conditions))
 
@@ -370,6 +387,8 @@ async def search_transactions(
         filter_desc.append(f"关键词 \"{keyword}\"")
     if category:
         filter_desc.append(f"分类 \"{category}\"")
+    if tag:
+        filter_desc.append(f"标签 \"{tag}\"")
     desc = "、".join(filter_desc) if filter_desc else "全部交易"
 
     if not rows:
@@ -380,17 +399,25 @@ async def search_transactions(
     lines = [
         title,
         "",
-        "| 日期 | 类型 | 分类 | 金额 | 备注 |",
-        "|------|------|------|------|------|",
+        "| 日期 | 类型 | 分类 | 金额 | 备注 | 标签 |",
+        "|------|------|------|------|------|------|",
     ]
+
+    def _resolve_tags(tag_ids_str: str) -> str:
+        if not tag_ids_str:
+            return "-"
+        names = [tag_map.get(tid.strip(), tid.strip()) for tid in tag_ids_str.split(",") if tid.strip()]
+        return "、".join(names)
+
     for row in rows:
-        ts, ttype, cat_name, amount, comment = row
+        ts, ttype, cat_name, amount, comment, tag_ids = row
         date_str = datetime.datetime.fromtimestamp(ts, tz=TZ).strftime("%Y-%m-%d")
         type_str = "收入" if ttype == TYPE_INCOME else "支出"
         cat_str = cat_name or "未分类"
         comment_str = (comment or "")[:30]
+        tag_str = _resolve_tags(tag_ids or "")
         lines.append(
-            f"| {date_str} | {type_str} | {cat_str} | {_yuan(amount)} | {comment_str} |"
+            f"| {date_str} | {type_str} | {cat_str} | {_yuan(amount)} | {comment_str} | {tag_str} |"
         )
 
     return "\n".join(lines)

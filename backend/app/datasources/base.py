@@ -23,6 +23,15 @@ class CategoryData:
 
 
 @dataclass
+class TagData:
+    id: int
+    name: str
+    group_id: int
+    display_order: int
+    hidden: bool
+
+
+@dataclass
 class TransactionData:
     id: int
     type: int
@@ -65,6 +74,11 @@ class DataSourceBase(ABC):
         self, start_time: Optional[int] = None, end_time: Optional[int] = None
     ) -> list[TransactionData]:
         """获取交易列表，支持时间范围筛选"""
+        ...
+
+    @abstractmethod
+    async def fetch_tags(self) -> list[TagData]:
+        """获取标签列表"""
         ...
 
     @abstractmethod

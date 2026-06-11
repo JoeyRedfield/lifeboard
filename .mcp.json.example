@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "lifeboard": {
+      "type": "http",
+      "url": "http://localhost:8000/sse"
+    },
+    "ezbookkeeping-mcp": {
+      "type": "streamable-http",
+      "url": "https://ezbookkeeping.mayswind.net/mcp",
+      "headers": {
+        "Authorization": "Bearer <your-ezbookkeeping-token>"
+      }
+    }
+  }
+}

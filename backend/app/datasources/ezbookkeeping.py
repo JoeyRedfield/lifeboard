@@ -7,6 +7,7 @@ from app.datasources.base import (
     DataSourceBase,
     AccountData,
     CategoryData,
+    TagData,
     TransactionData,
 )
 
@@ -113,6 +114,29 @@ class EzBookkeepingSource(DataSourceBase):
                                 hidden=sub.get("hidden", False),
                             )
                         )
+
+    async def fetch_tags(self) -> list[TagData]:
+        async with self._client() as client:
+            resp = await client.get("/api/v1/transaction/tags/list.json")
+            data = resp.json()
+            if not data.get("success"):
+                return []
+            tags = data.get("result", [])
+
+        result = []
+        for item in tags:
+            if not isinstance(item, dict):
+                continue
+            result.append(
+                TagData(
+                    id=int(item["id"]),
+                    name=item.get("name", ""),
+                    group_id=int(item.get("groupId", 0)),
+                    display_order=item.get("displayOrder", 0),
+                    hidden=item.get("hidden", False),
+                )
+            )
+        return result
 
     async def fetch_transactions(
         self, start_time: Optional[int] = None, end_time: Optional[int] = None

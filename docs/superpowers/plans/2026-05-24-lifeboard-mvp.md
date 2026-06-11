@@ -317,7 +317,7 @@ export default defineConfig({
 - [ ] **Step 11: 验证环境启动**
 
 ```bash
-cd /Users/wuzhuoyi/Desktop/code/my-project
+cd /path/to/my-project
 docker compose up -d db
 docker compose ps
 ```
@@ -327,7 +327,7 @@ Expected: db 服务状态为 Up/healthy
 - [ ] **Step 12: 安装前端依赖并验证**
 
 ```bash
-cd /Users/wuzhuoyi/Desktop/code/my-project/frontend
+cd /path/to/my-project/frontend
 npm install
 ```
 
@@ -440,7 +440,7 @@ async def health():
 - [ ] **Step 5: 验证后端启动**
 
 ```bash
-cd /Users/wuzhuoyi/Desktop/code/my-project/backend
+cd /path/to/my-project/backend
 pip install -r requirements.txt
 uvicorn app.main:app --reload &
 sleep 3
@@ -2349,7 +2349,7 @@ async def test_get_overview_current_month(db):
 - [ ] **Step 5: 运行测试**
 
 ```bash
-cd /Users/wuzhuoyi/Desktop/code/my-project/backend
+cd /path/to/my-project/backend
 PYTHONPATH=. pytest tests/ -v
 ```
 
