@@ -6,8 +6,11 @@ import type {
   MonthlyTrendItem,
   CategoryBreakdownItem,
   AssetTrendItem,
+  RewardLedgerEntry,
   RewardSummary,
   SyncResult,
+  TaskProject,
+  TaskTemplate,
 } from "../types";
 
 const api = axios.create({ baseURL: "/api" });
@@ -55,8 +58,41 @@ export async function fetchDailyTasks(
   return data;
 }
 
+export async function fetchProjects(): Promise<TaskProject[]> {
+  const { data } = await api.get("/task-projects");
+  return data;
+}
+
+export async function fetchTaskTemplates(
+  projectId?: number
+): Promise<TaskTemplate[]> {
+  const params = new URLSearchParams();
+  if (projectId !== undefined) {
+    params.set("project_id", String(projectId));
+  }
+
+  const query = params.toString();
+  const { data } = await api.get(`/task-templates${query ? `?${query}` : ""}`);
+  return data;
+}
+
 export async function fetchRewardSummary(): Promise<RewardSummary> {
   const { data } = await api.get("/rewards/summary");
+  return data;
+}
+
+export async function fetchRewardLedger(
+  limit = 20
+): Promise<RewardLedgerEntry[]> {
+  const { data } = await api.get(`/rewards/ledger?limit=${limit}`);
+  return data;
+}
+
+export async function spendReward(
+  amount: number,
+  reason: string
+): Promise<RewardLedgerEntry> {
+  const { data } = await api.post("/rewards/spend", { amount, reason });
   return data;
 }
 

@@ -1,15 +1,35 @@
+import ProjectTemplatePanel from "../components/ProjectTemplatePanel";
+import useProjectsBoard from "../hooks/useProjectsBoard";
+
 export default function Projects() {
+  const {
+    projects,
+    selectedProjectId,
+    templates,
+    loading,
+    error,
+    selectProject,
+  } = useProjectsBoard();
+
   return (
     <div>
       <h1 className="page-title">项目</h1>
-      <div className="card">
-        <div className="card-title" style={{ marginBottom: 16 }}>
-          任务项目
+
+      {loading ? (
+        <div className="loading-container">
+          <div className="loading-pulse" aria-label="加载中" />
         </div>
-        <p style={{ color: "var(--text-secondary)", lineHeight: 1.7 }}>
-          这里将管理项目、任务模板和奖励配置。
-        </p>
-      </div>
+      ) : (
+        <div className="projects-board">
+          {error ? <div className="message message-error">{error}</div> : null}
+          <ProjectTemplatePanel
+            projects={projects}
+            selectedProjectId={selectedProjectId}
+            templates={templates}
+            onSelectProject={selectProject}
+          />
+        </div>
+      )}
     </div>
   );
 }

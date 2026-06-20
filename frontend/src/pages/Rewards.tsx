@@ -1,15 +1,29 @@
+import RewardLedgerPanel from "../components/RewardLedgerPanel";
+import useRewardsBoard from "../hooks/useRewardsBoard";
+
 export default function Rewards() {
+  const { summary, ledger, loading, error, submitting, submitSpend } =
+    useRewardsBoard();
+
   return (
     <div>
       <h1 className="page-title">奖励</h1>
-      <div className="card">
-        <div className="card-title" style={{ marginBottom: 16 }}>
-          奖励余额
+
+      {loading ? (
+        <div className="loading-container">
+          <div className="loading-pulse" aria-label="加载中" />
         </div>
-        <p style={{ color: "var(--text-secondary)", lineHeight: 1.7 }}>
-          这里将展示奖励余额、收入统计与支出记录。
-        </p>
-      </div>
+      ) : (
+        <div className="rewards-page">
+          {error ? <div className="message message-error">{error}</div> : null}
+          <RewardLedgerPanel
+            summary={summary}
+            ledger={ledger}
+            submitting={submitting}
+            onSubmitSpend={submitSpend}
+          />
+        </div>
+      )}
     </div>
   );
 }

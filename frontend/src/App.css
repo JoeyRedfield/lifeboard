@@ -602,18 +602,168 @@ body::before {
   gap: 12px;
 }
 
+/* ===== 项目页 / 奖励页 ===== */
+
+.projects-board,
+.rewards-page,
+.rewards-board {
+  display: grid;
+  gap: 24px;
+}
+
+.board-two-column {
+  display: grid;
+  grid-template-columns: minmax(240px, 300px) minmax(0, 1fr);
+  gap: 20px;
+}
+
+.panel-empty-state {
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+
+.project-list,
+.template-list,
+.ledger-list {
+  display: grid;
+  gap: 14px;
+}
+
+.project-list-item {
+  width: 100%;
+  text-align: left;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background: rgba(13, 17, 23, 0.72);
+  padding: 16px;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.project-list-item:hover,
+.project-list-item.is-active {
+  border-color: rgba(212, 168, 83, 0.28);
+  background: rgba(212, 168, 83, 0.08);
+}
+
+.project-list-name,
+.template-item-title,
+.ledger-item-reason {
+  display: block;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.project-list-status,
+.template-item-notes,
+.ledger-item-type {
+  display: block;
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.template-item,
+.ledger-item {
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background: rgba(13, 17, 23, 0.72);
+  padding: 16px 18px;
+}
+
+.template-item-header,
+.ledger-item-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.template-item-badge {
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  background: rgba(139, 148, 158, 0.1);
+}
+
+.template-item-badge.is-active {
+  color: var(--accent-emerald);
+  background: rgba(63, 185, 80, 0.12);
+}
+
+.template-item-meta {
+  display: flex;
+  gap: 14px;
+  margin-top: 10px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.reward-form {
+  display: grid;
+  gap: 16px;
+}
+
+.board-field {
+  display: grid;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.board-field input {
+  width: 100%;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background: rgba(13, 17, 23, 0.72);
+  color: var(--text-primary);
+  padding: 12px 14px;
+  font-size: 14px;
+  font-family: var(--font-display);
+}
+
+.board-field input:focus {
+  outline: none;
+  border-color: rgba(88, 166, 255, 0.45);
+  box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.1);
+}
+
+.rewards-summary-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-bottom: 0;
+}
+
+.ledger-item-amount {
+  font-size: 15px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+}
+
+.ledger-item-amount.is-positive {
+  color: var(--accent-gold);
+}
+
+.ledger-item-amount.is-negative {
+  color: var(--accent-rose);
+}
+
 /* ===== 响应式 ===== */
 
 @media (max-width: 1200px) {
   .overview-grid { grid-template-columns: repeat(2, 1fr); }
   .charts-grid { grid-template-columns: 1fr; }
   .main-content { padding: 32px 24px; }
+  .board-two-column { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 768px) {
   .sidebar { display: none; }
   .main-content { margin-left: 0; padding: 20px 16px; }
   .overview-grid { grid-template-columns: 1fr; }
+  .rewards-summary-grid { grid-template-columns: 1fr; }
   .daily-task-row { flex-direction: column; }
   .daily-task-status,
   .daily-task-row .btn { width: 100%; }
