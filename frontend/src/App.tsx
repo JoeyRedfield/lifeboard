@@ -1,10 +1,4 @@
-import {
-  BrowserRouter,
-  Navigate,
-  Route,
-  Routes,
-  useInRouterContext,
-} from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import Layout from "./components/Layout";
 import Dashboard from "./pages/Dashboard";
 import Settings from "./pages/Settings";
@@ -12,7 +6,7 @@ import Today from "./pages/Today";
 import Projects from "./pages/Projects";
 import Rewards from "./pages/Rewards";
 
-function AppRoutes() {
+export function AppRoutes() {
   return (
     <Routes>
       <Route element={<Layout />}>
@@ -28,10 +22,6 @@ function AppRoutes() {
 }
 
 export default function App() {
-  if (useInRouterContext()) {
-    return <AppRoutes />;
-  }
-
   return (
     <BrowserRouter>
       <AppRoutes />
