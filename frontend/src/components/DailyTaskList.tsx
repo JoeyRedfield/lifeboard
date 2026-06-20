@@ -11,6 +11,20 @@ function formatYuan(amountInCent: number): string {
   return `¥${(amountInCent / 100).toFixed(2)}`;
 }
 
+function parsePositiveInteger(value: string): number | undefined | null {
+  const trimmedValue = value.trim();
+
+  if (trimmedValue === "") {
+    return undefined;
+  }
+
+  if (!/^[1-9]\d*$/.test(trimmedValue)) {
+    return null;
+  }
+
+  return Number(trimmedValue);
+}
+
 export default function DailyTaskList({
   tasks,
   finishingTaskId,
@@ -40,22 +54,20 @@ export default function DailyTaskList({
   const handleConfirm = async () => {
     if (!expandedTask) return;
 
-    const trimmedValue = actualDurationValue.trim();
-    const parsedDuration =
-      trimmedValue === "" ? undefined : Number.parseInt(trimmedValue, 10);
+    const parsedDuration = parsePositiveInteger(actualDurationValue);
     const hasInvalidDuration =
-      trimmedValue !== "" &&
-      (parsedDuration === undefined ||
-        !Number.isInteger(parsedDuration) ||
-        parsedDuration <= 0);
+      actualDurationValue.trim() !== "" && parsedDuration === null;
 
     if (hasInvalidDuration) {
       setSubmitError("实际时长需要填写正整数分钟。");
       return;
     }
 
+    const actualDurationMinutes =
+      parsedDuration === null ? undefined : parsedDuration;
+
     try {
-      await onFinishTask(expandedTask.id, parsedDuration);
+      await onFinishTask(expandedTask.id, actualDurationMinutes);
       resetConfirmation();
     } catch {
       setSubmitError("提交失败，请稍后重试。");

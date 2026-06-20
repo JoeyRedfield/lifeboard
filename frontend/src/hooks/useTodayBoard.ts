@@ -11,12 +11,6 @@ const EMPTY_SUMMARY: RewardSummary = {
   today_earned: 0,
 };
 
-function mergeCompletedTask(tasks: DailyTask[], completedTask: DailyTask): DailyTask[] {
-  return tasks.map((task) =>
-    task.id === completedTask.id ? { ...task, ...completedTask } : task
-  );
-}
-
 export function useTodayBoard() {
   const [tasks, setTasks] = useState<DailyTask[]>([]);
   const [summary, setSummary] = useState<RewardSummary>(EMPTY_SUMMARY);
@@ -53,10 +47,13 @@ export function useTodayBoard() {
       setError(null);
 
       try {
-        const completedTask = await completeDailyTask(taskId, actualDurationMinutes);
-        setTasks((currentTasks) => mergeCompletedTask(currentTasks, completedTask));
-        const updatedSummary = await fetchRewardSummary();
-        setSummary(updatedSummary);
+        await completeDailyTask(taskId, actualDurationMinutes);
+        const [tasksData, summaryData] = await Promise.all([
+          fetchDailyTasks(),
+          fetchRewardSummary(),
+        ]);
+        setTasks(tasksData);
+        setSummary(summaryData);
       } catch (finishError) {
         console.error(finishError);
         setError("任务完成失败，请稍后再试。");
