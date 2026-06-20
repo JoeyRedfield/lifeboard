@@ -34,3 +34,5 @@ export interface SyncResult {
   };
   error?: string;
 }
+
+export * from "./taskReward";

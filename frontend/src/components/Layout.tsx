@@ -10,7 +10,19 @@ export default function Layout() {
           <div className="sidebar-logo-sub">个人数据中台</div>
         </div>
         <nav className="sidebar-nav">
-          <NavLink to="/" end>
+          <NavLink to="/today">
+            <span className="sidebar-nav-icon">◐</span>
+            今日
+          </NavLink>
+          <NavLink to="/projects">
+            <span className="sidebar-nav-icon">▣</span>
+            项目
+          </NavLink>
+          <NavLink to="/rewards">
+            <span className="sidebar-nav-icon">✦</span>
+            奖励
+          </NavLink>
+          <NavLink to="/dashboard">
             <span className="sidebar-nav-icon">◆</span>
             仪表盘
           </NavLink>

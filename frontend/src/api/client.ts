@@ -1,9 +1,12 @@
 import axios from "axios";
+import dayjs from "dayjs";
 import type {
+  DailyTask,
   OverviewData,
   MonthlyTrendItem,
   CategoryBreakdownItem,
   AssetTrendItem,
+  RewardSummary,
   SyncResult,
 } from "../types";
 
@@ -42,6 +45,18 @@ export async function fetchAssets(
   months = 12
 ): Promise<AssetTrendItem[]> {
   const { data } = await api.get(`/dashboard/assets?months=${months}`);
+  return data;
+}
+
+export async function fetchDailyTasks(
+  date = dayjs().format("YYYY-MM-DD")
+): Promise<DailyTask[]> {
+  const { data } = await api.get(`/daily-tasks?date=${date}`);
+  return data;
+}
+
+export async function fetchRewardSummary(): Promise<RewardSummary> {
+  const { data } = await api.get("/rewards/summary");
   return data;
 }
 

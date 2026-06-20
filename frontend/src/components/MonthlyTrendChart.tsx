@@ -1,7 +1,6 @@
 import ReactECharts from "echarts-for-react";
 import type { MonthlyTrendItem } from "../types";
 
-const CHART_BG = "#161b22";
 const TEXT_SECONDARY = "#8b949e";
 const BORDER = "rgba(139,148,158,0.12)";
 const GOLD = "#d4a853";
