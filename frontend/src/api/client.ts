@@ -2,6 +2,7 @@ import axios from "axios";
 import dayjs from "dayjs";
 import type {
   DailyTask,
+  DailyTaskCreatePayload,
   OverviewData,
   MonthlyTrendItem,
   CategoryBreakdownItem,
@@ -10,7 +11,9 @@ import type {
   RewardSummary,
   SyncResult,
   TaskProject,
+  TaskProjectCreatePayload,
   TaskTemplate,
+  TaskTemplateCreatePayload,
 } from "../types";
 
 const api = axios.create({ baseURL: "/api" });
@@ -63,6 +66,13 @@ export async function fetchProjects(): Promise<TaskProject[]> {
   return data;
 }
 
+export async function createProject(
+  payload: TaskProjectCreatePayload
+): Promise<TaskProject> {
+  const { data } = await api.post("/task-projects", payload);
+  return data;
+}
+
 export async function fetchTaskTemplates(
   projectId?: number
 ): Promise<TaskTemplate[]> {
@@ -73,6 +83,24 @@ export async function fetchTaskTemplates(
 
   const query = params.toString();
   const { data } = await api.get(`/task-templates${query ? `?${query}` : ""}`);
+  return data;
+}
+
+export async function createTaskTemplate(
+  payload: TaskTemplateCreatePayload
+): Promise<TaskTemplate> {
+  const { data } = await api.post("/task-templates", payload);
+  return data;
+}
+
+export async function createDailyTask(
+  payload: DailyTaskCreatePayload
+): Promise<DailyTask> {
+  const requestPayload = {
+    date: dayjs().format("YYYY-MM-DD"),
+    ...payload,
+  };
+  const { data } = await api.post("/daily-tasks", requestPayload);
   return data;
 }
 

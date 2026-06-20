@@ -707,6 +707,22 @@ body::before {
   gap: 16px;
 }
 
+.template-item-actions {
+  margin-top: 16px;
+}
+
+.project-create-form {
+  display: grid;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.template-create-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
 .board-field {
   display: grid;
   gap: 8px;
@@ -769,4 +785,5 @@ body::before {
   .daily-task-row .btn { width: 100%; }
   .task-complete-field input { max-width: none; }
   .task-complete-actions { flex-direction: column; }
+  .template-create-grid { grid-template-columns: 1fr; }
 }

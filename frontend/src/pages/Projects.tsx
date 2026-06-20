@@ -8,7 +8,14 @@ export default function Projects() {
     templates,
     loading,
     error,
+    successMessage,
+    submittingProject,
+    submittingTemplate,
+    addingTemplateId,
     selectProject,
+    submitProject,
+    submitTemplate,
+    addTemplateToToday,
   } = useProjectsBoard();
 
   return (
@@ -22,11 +29,20 @@ export default function Projects() {
       ) : (
         <div className="projects-board">
           {error ? <div className="message message-error">{error}</div> : null}
+          {successMessage ? (
+            <div className="message message-success">{successMessage}</div>
+          ) : null}
           <ProjectTemplatePanel
             projects={projects}
             selectedProjectId={selectedProjectId}
             templates={templates}
+            submittingProject={submittingProject}
+            submittingTemplate={submittingTemplate}
+            addingTemplateId={addingTemplateId}
             onSelectProject={selectProject}
+            onCreateProject={submitProject}
+            onCreateTemplate={submitTemplate}
+            onAddToToday={addTemplateToToday}
           />
         </div>
       )}
