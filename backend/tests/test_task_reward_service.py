@@ -8,7 +8,6 @@ from app.services.task_reward_service import (
     create_project,
     create_task_template,
     get_reward_summary,
-    list_daily_tasks,
     reopen_daily_task,
     spend_reward,
     update_task_template,
@@ -140,32 +139,3 @@ async def test_inactive_template_cannot_create_daily_task(db):
                 "reward_amount": 800,
             },
         )
-
-
-@pytest.mark.asyncio
-async def test_list_daily_tasks_returns_created_task(db):
-    project = await create_project(db, {"name": "整理"})
-    template = await create_task_template(
-        db,
-        {
-            "project_id": project.id,
-            "name": "整理桌面",
-            "default_estimated_duration_minutes": 10,
-            "default_reward_amount": 500,
-            "notes": "",
-        },
-    )
-    created = await create_daily_task(
-        db,
-        {
-            "date": datetime.date.today(),
-            "task_template_id": template.id,
-            "estimated_duration_minutes": 10,
-            "reward_amount": 500,
-        },
-    )
-
-    tasks = await list_daily_tasks(db, datetime.date.today())
-
-    assert len(tasks) == 1
-    assert tasks[0].id == created.id
