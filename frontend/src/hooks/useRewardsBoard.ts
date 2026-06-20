@@ -48,10 +48,20 @@ export function useRewardsBoard() {
     setError(null);
 
     try {
-      const createdEntry = await spendReward(amountYuan * 100, reason);
-      setLedger((currentLedger) => [createdEntry, ...currentLedger].slice(0, DEFAULT_LEDGER_LIMIT));
-      const summaryData = await fetchRewardSummary();
-      setSummary(summaryData);
+      await spendReward(amountYuan * 100, reason);
+
+      try {
+        const [summaryData, ledgerData] = await Promise.all([
+          fetchRewardSummary(),
+          fetchRewardLedger(DEFAULT_LEDGER_LIMIT),
+        ]);
+        setSummary(summaryData);
+        setLedger(ledgerData);
+      } catch (refreshError) {
+        console.error(refreshError);
+        const ledgerData = await fetchRewardLedger(DEFAULT_LEDGER_LIMIT);
+        setLedger(ledgerData);
+      }
     } catch (submitError) {
       console.error(submitError);
       setError("奖励扣减失败，请稍后重试。");

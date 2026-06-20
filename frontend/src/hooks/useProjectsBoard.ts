@@ -36,11 +36,11 @@ export function useProjectsBoard() {
   }, []);
 
   const selectProject = useCallback(async (projectId: number) => {
-    setSelectedProjectId(projectId);
     setError(null);
 
     try {
       const templatesData = await fetchTaskTemplates(projectId);
+      setSelectedProjectId(projectId);
       setTemplates(templatesData);
     } catch (loadError) {
       console.error(loadError);
