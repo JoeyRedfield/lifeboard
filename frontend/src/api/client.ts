@@ -60,6 +60,18 @@ export async function fetchRewardSummary(): Promise<RewardSummary> {
   return data;
 }
 
+export async function completeDailyTask(
+  taskId: number,
+  actualDurationMinutes?: number
+): Promise<DailyTask> {
+  const payload =
+    actualDurationMinutes === undefined
+      ? {}
+      : { actual_duration_minutes: actualDurationMinutes };
+  const { data } = await api.post(`/daily-tasks/${taskId}/complete`, payload);
+  return data;
+}
+
 export async function triggerSync(): Promise<SyncResult> {
   const { data } = await api.post("/sync");
   return data;

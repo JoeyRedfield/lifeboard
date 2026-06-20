@@ -475,6 +475,133 @@ body::before {
 .overview-card:nth-child(3) { animation-delay: 0.15s; }
 .overview-card:nth-child(4) { animation-delay: 0.2s; }
 
+/* ===== Today 页 ===== */
+
+.today-board {
+  display: grid;
+  gap: 24px;
+}
+
+.today-empty-state {
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+
+.daily-task-list {
+  display: grid;
+  gap: 16px;
+}
+
+.daily-task-item {
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background: rgba(13, 17, 23, 0.72);
+  padding: 18px 20px;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.daily-task-item:hover {
+  border-color: var(--border-emphasis);
+}
+
+.daily-task-item.is-completed {
+  background: rgba(63, 185, 80, 0.06);
+  border-color: rgba(63, 185, 80, 0.16);
+}
+
+.daily-task-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.daily-task-main {
+  min-width: 0;
+  flex: 1;
+}
+
+.daily-task-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.5;
+}
+
+.daily-task-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  margin-top: 8px;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.daily-task-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 76px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(63, 185, 80, 0.12);
+  color: var(--accent-emerald);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.daily-task-footnote {
+  margin-top: 10px;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.task-complete-sheet {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-default);
+  display: grid;
+  gap: 12px;
+}
+
+.task-complete-field {
+  display: grid;
+  gap: 8px;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.task-complete-field input {
+  width: 100%;
+  max-width: 220px;
+  border: 1px solid var(--border-emphasis);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  font: inherit;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.task-complete-field input:focus {
+  border-color: rgba(212, 168, 83, 0.55);
+  box-shadow: 0 0 0 3px rgba(212, 168, 83, 0.12);
+}
+
+.task-complete-hint {
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.task-complete-actions {
+  display: flex;
+  gap: 12px;
+}
+
 /* ===== 响应式 ===== */
 
 @media (max-width: 1200px) {
@@ -487,4 +614,9 @@ body::before {
   .sidebar { display: none; }
   .main-content { margin-left: 0; padding: 20px 16px; }
   .overview-grid { grid-template-columns: 1fr; }
+  .daily-task-row { flex-direction: column; }
+  .daily-task-status,
+  .daily-task-row .btn { width: 100%; }
+  .task-complete-field input { max-width: none; }
+  .task-complete-actions { flex-direction: column; }
 }
