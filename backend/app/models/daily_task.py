@@ -1,4 +1,5 @@
 import datetime
+from typing import Optional
 
 from sqlalchemy import Date, DateTime, ForeignKey, Integer, String, func
 from sqlalchemy.orm import Mapped, mapped_column
@@ -17,8 +18,10 @@ class DailyTask(Base):
     estimated_duration_minutes_snapshot: Mapped[int] = mapped_column(Integer)
     reward_amount_snapshot: Mapped[int] = mapped_column(Integer)
     status: Mapped[str] = mapped_column(String(20), default="pending")
-    actual_duration_minutes: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    completed_at: Mapped[datetime.datetime | None] = mapped_column(
+    actual_duration_minutes: Mapped[Optional[int]] = mapped_column(
+        Integer, nullable=True
+    )
+    completed_at: Mapped[Optional[datetime.datetime]] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
     created_at: Mapped[datetime.datetime] = mapped_column(

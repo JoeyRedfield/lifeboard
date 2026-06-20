@@ -1,7 +1,9 @@
 import datetime
 
 import pytest
+from sqlalchemy import select
 
+from app.models import RewardLedger
 from app.services.task_reward_service import (
     complete_daily_task,
     create_daily_task,
@@ -39,9 +41,17 @@ async def test_complete_daily_task_creates_reward_entry(db):
 
     completed = await complete_daily_task(db, task.id, actual_duration_minutes=28)
     summary = await get_reward_summary(db, datetime.date.today())
+    ledger_entries = (
+        await db.scalars(
+            select(RewardLedger).where(RewardLedger.daily_task_id == task.id)
+        )
+    ).all()
 
     assert completed.status == "completed"
     assert completed.actual_duration_minutes == 28
+    assert len(ledger_entries) == 1
+    assert ledger_entries[0].amount == 2000
+    assert ledger_entries[0].daily_task_id == task.id
     assert summary["current_balance"] == 2000
     assert summary["today_earned"] == 2000
 
@@ -72,7 +82,15 @@ async def test_complete_daily_task_is_idempotent(db):
     await complete_daily_task(db, task.id, actual_duration_minutes=None)
     await complete_daily_task(db, task.id, actual_duration_minutes=None)
     summary = await get_reward_summary(db, datetime.date.today())
+    ledger_entries = (
+        await db.scalars(
+            select(RewardLedger).where(RewardLedger.daily_task_id == task.id)
+        )
+    ).all()
 
+    assert len(ledger_entries) == 1
+    assert ledger_entries[0].amount == 3000
+    assert ledger_entries[0].daily_task_id == task.id
     assert summary["current_balance"] == 3000
     assert summary["today_earned"] == 3000
 
