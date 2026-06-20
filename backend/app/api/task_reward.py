@@ -20,8 +20,15 @@ from app.schemas.task_reward import (
     TaskTemplateUpdate,
 )
 from app.services import task_reward_service
+from app.services.task_reward_service import TaskRewardNotFoundError
 
 router = APIRouter(tags=["task_reward"])
+
+
+def _raise_http_error(exc: ValueError) -> None:
+    if isinstance(exc, TaskRewardNotFoundError):
+        raise HTTPException(status_code=404, detail=str(exc))
+    raise HTTPException(status_code=400, detail=str(exc))
 
 
 @router.get("/task-projects", response_model=list[TaskProjectRead])
@@ -42,9 +49,12 @@ async def update_task_project(
     payload: TaskProjectUpdate,
     db: AsyncSession = Depends(get_db),
 ):
-    return await task_reward_service.update_project(
-        db, project_id, payload.model_dump(exclude_none=True)
-    )
+    try:
+        return await task_reward_service.update_project(
+            db, project_id, payload.model_dump(exclude_none=True)
+        )
+    except ValueError as exc:
+        _raise_http_error(exc)
 
 
 @router.get("/task-templates", response_model=list[TaskTemplateRead])
@@ -68,9 +78,12 @@ async def update_task_template(
     payload: TaskTemplateUpdate,
     db: AsyncSession = Depends(get_db),
 ):
-    return await task_reward_service.update_task_template(
-        db, template_id, payload.model_dump(exclude_none=True)
-    )
+    try:
+        return await task_reward_service.update_task_template(
+            db, template_id, payload.model_dump(exclude_none=True)
+        )
+    except ValueError as exc:
+        _raise_http_error(exc)
 
 
 @router.get("/daily-tasks", response_model=list[DailyTaskRead])
@@ -88,7 +101,7 @@ async def create_daily_task(
     try:
         return await task_reward_service.create_daily_task(db, payload.model_dump())
     except ValueError as exc:
-        raise HTTPException(status_code=400, detail=str(exc))
+        _raise_http_error(exc)
 
 
 @router.patch("/daily-tasks/{task_id}", response_model=DailyTaskRead)
@@ -97,9 +110,12 @@ async def update_daily_task(
     payload: DailyTaskUpdate,
     db: AsyncSession = Depends(get_db),
 ):
-    return await task_reward_service.update_daily_task(
-        db, task_id, payload.model_dump(exclude_none=True)
-    )
+    try:
+        return await task_reward_service.update_daily_task(
+            db, task_id, payload.model_dump(exclude_none=True)
+        )
+    except ValueError as exc:
+        _raise_http_error(exc)
 
 
 @router.post("/daily-tasks/{task_id}/complete", response_model=DailyTaskRead)
@@ -108,14 +124,20 @@ async def complete_daily_task(
     payload: CompleteDailyTaskRequest,
     db: AsyncSession = Depends(get_db),
 ):
-    return await task_reward_service.complete_daily_task(
-        db, task_id, payload.actual_duration_minutes
-    )
+    try:
+        return await task_reward_service.complete_daily_task(
+            db, task_id, payload.actual_duration_minutes
+        )
+    except ValueError as exc:
+        _raise_http_error(exc)
 
 
 @router.post("/daily-tasks/{task_id}/reopen", response_model=DailyTaskRead)
 async def reopen_daily_task(task_id: int, db: AsyncSession = Depends(get_db)):
-    return await task_reward_service.reopen_daily_task(db, task_id)
+    try:
+        return await task_reward_service.reopen_daily_task(db, task_id)
+    except ValueError as exc:
+        _raise_http_error(exc)
 
 
 @router.get("/rewards/summary", response_model=RewardSummaryRead)
@@ -140,4 +162,4 @@ async def spend_reward(
             db, payload.amount, payload.reason
         )
     except ValueError as exc:
-        raise HTTPException(status_code=400, detail=str(exc))
+        _raise_http_error(exc)

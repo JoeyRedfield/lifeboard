@@ -7,6 +7,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models import DailyTask, RewardLedger, TaskProject, TaskTemplate
 
 
+class TaskRewardNotFoundError(ValueError):
+    pass
+
+
+def _raise_not_found(entity_name: str) -> None:
+    raise TaskRewardNotFoundError("%s不存在" % entity_name)
+
+
 async def create_project(db: AsyncSession, payload: Dict[str, Any]) -> TaskProject:
     project = TaskProject(
         name=payload["name"],
@@ -30,6 +38,8 @@ async def update_project(
     db: AsyncSession, project_id: int, payload: Dict[str, Any]
 ) -> TaskProject:
     project = await db.get(TaskProject, project_id)
+    if project is None:
+        _raise_not_found("项目")
     for key, value in payload.items():
         setattr(project, key, value)
     await db.commit()
@@ -61,6 +71,8 @@ async def update_task_template(
     db: AsyncSession, template_id: int, payload: Dict[str, Any]
 ) -> TaskTemplate:
     template = await db.get(TaskTemplate, template_id)
+    if template is None:
+        _raise_not_found("任务模板")
     for key, value in payload.items():
         setattr(template, key, value)
     await db.commit()
@@ -101,7 +113,19 @@ async def update_daily_task(
     db: AsyncSession, task_id: int, payload: Dict[str, Any]
 ) -> DailyTask:
     task = await db.get(DailyTask, task_id)
+    if task is None:
+        _raise_not_found("日任务")
+    if task.status == "completed":
+        raise ValueError("已完成任务不能编辑")
+
+    allowed_fields = {
+        "name_snapshot",
+        "estimated_duration_minutes_snapshot",
+        "reward_amount_snapshot",
+    }
     for key, value in payload.items():
+        if key not in allowed_fields:
+            continue
         setattr(task, key, value)
     await db.commit()
     await db.refresh(task)
@@ -112,6 +136,8 @@ async def complete_daily_task(
     db: AsyncSession, task_id: int, actual_duration_minutes: int = None
 ) -> DailyTask:
     task = await db.get(DailyTask, task_id)
+    if task is None:
+        _raise_not_found("日任务")
     if task.status == "completed":
         return task
 
@@ -142,6 +168,8 @@ async def complete_daily_task(
 
 async def reopen_daily_task(db: AsyncSession, task_id: int) -> DailyTask:
     task = await db.get(DailyTask, task_id)
+    if task is None:
+        _raise_not_found("日任务")
     if task.status != "completed":
         return task
 

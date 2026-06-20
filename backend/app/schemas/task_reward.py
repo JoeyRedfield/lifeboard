@@ -70,7 +70,6 @@ class DailyTaskUpdate(BaseModel):
         default=None, ge=1, le=1440
     )
     reward_amount_snapshot: Optional[int] = Field(default=None, ge=0)
-    status: Optional[str] = None
 
 
 class CompleteDailyTaskRequest(BaseModel):

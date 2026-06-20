@@ -12,6 +12,7 @@ from app.services.task_reward_service import (
     get_reward_summary,
     reopen_daily_task,
     spend_reward,
+    update_daily_task,
     update_task_template,
 )
 
@@ -164,6 +165,42 @@ async def test_recomplete_daily_task_regrants_reward_after_reopen(db):
     assert [entry.amount for entry in ledger_entries] == [1000, -1000, 1000]
     assert summary["current_balance"] == 1000
     assert summary["today_earned"] == 2000
+
+
+@pytest.mark.asyncio
+async def test_completed_daily_task_cannot_be_edited(db):
+    project = await create_project(db, {"name": "阅读"})
+    template = await create_task_template(
+        db,
+        {
+            "project_id": project.id,
+            "name": "读书 30 分钟",
+            "default_estimated_duration_minutes": 30,
+            "default_reward_amount": 1200,
+            "notes": "",
+        },
+    )
+    task = await create_daily_task(
+        db,
+        {
+            "date": datetime.date.today(),
+            "task_template_id": template.id,
+            "estimated_duration_minutes": 30,
+            "reward_amount": 1200,
+        },
+    )
+    await complete_daily_task(db, task.id, actual_duration_minutes=30)
+
+    with pytest.raises(ValueError, match="已完成任务不能编辑"):
+        await update_daily_task(
+            db,
+            task.id,
+            {
+                "name_snapshot": "读书 45 分钟",
+                "estimated_duration_minutes_snapshot": 45,
+                "reward_amount_snapshot": 1500,
+            },
+        )
 
 
 @pytest.mark.asyncio
