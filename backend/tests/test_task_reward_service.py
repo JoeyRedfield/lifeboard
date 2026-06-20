@@ -127,6 +127,46 @@ async def test_reopen_daily_task_reverses_reward_balance(db):
 
 
 @pytest.mark.asyncio
+async def test_recomplete_daily_task_regrants_reward_after_reopen(db):
+    project = await create_project(db, {"name": "钢琴"})
+    template = await create_task_template(
+        db,
+        {
+            "project_id": project.id,
+            "name": "练琴 40 分钟",
+            "default_estimated_duration_minutes": 40,
+            "default_reward_amount": 1000,
+            "notes": "",
+        },
+    )
+    task = await create_daily_task(
+        db,
+        {
+            "date": datetime.date.today(),
+            "task_template_id": template.id,
+            "estimated_duration_minutes": 40,
+            "reward_amount": 1000,
+        },
+    )
+
+    await complete_daily_task(db, task.id, actual_duration_minutes=40)
+    await reopen_daily_task(db, task.id)
+    recommpleted = await complete_daily_task(db, task.id, actual_duration_minutes=38)
+    summary = await get_reward_summary(db, datetime.date.today())
+    ledger_entries = (
+        await db.scalars(
+            select(RewardLedger).where(RewardLedger.daily_task_id == task.id)
+        )
+    ).all()
+
+    assert recommpleted.status == "completed"
+    assert recommpleted.actual_duration_minutes == 38
+    assert [entry.amount for entry in ledger_entries] == [1000, -1000, 1000]
+    assert summary["current_balance"] == 1000
+    assert summary["today_earned"] == 2000
+
+
+@pytest.mark.asyncio
 async def test_spend_reward_rejects_when_balance_is_insufficient(db):
     with pytest.raises(ValueError, match="余额不足"):
         await spend_reward(db, amount=500, reason="咖啡")

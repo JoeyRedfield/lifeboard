@@ -115,9 +115,9 @@ async def complete_daily_task(
     if task.status == "completed":
         return task
 
-    existing_entry = await db.scalar(
-        select(RewardLedger.id).where(
-            RewardLedger.daily_task_id == task.id, RewardLedger.entry_type == "earn"
+    task_reward_balance = await db.scalar(
+        select(func.coalesce(func.sum(RewardLedger.amount), 0)).where(
+            RewardLedger.daily_task_id == task.id
         )
     )
 
@@ -125,7 +125,7 @@ async def complete_daily_task(
     task.actual_duration_minutes = actual_duration_minutes
     task.completed_at = datetime.datetime.now(datetime.timezone.utc)
 
-    if existing_entry is None:
+    if int(task_reward_balance or 0) <= 0:
         db.add(
             RewardLedger(
                 entry_type="earn",
