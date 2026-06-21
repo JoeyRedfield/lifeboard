@@ -5,18 +5,23 @@
 ```
 ┌─────────────────────────────────────┐
 │  LifeBoard 前端 (React)             │  localhost:5173
-│  仪表盘 · 设置                       │
+│  仪表盘 · 设置 · 待办奖励只读页        │
 └────────────┬────────────────────────┘
              │ Vite 代理 /api
 ┌────────────▼────────────────────────┐
 │  LifeBoard 后端 (FastAPI)           │  localhost:8000
-│  同步 · 分析 · 调度                  │
-└─────┬──────────────┬────────────────┘
-      │ asyncpg      │ httpx (ezbookkeeping:8080)
+│  同步 · 分析 · 调度 · reward-todo 代理 │
+└─────┬──────────────┬─────────────────┘
+      │ asyncpg      │ httpx
 ┌─────▼──────┐  ┌────▼─────────────────┐
 │ PostgreSQL │  │  ezbookkeeping       │  localhost:8080
 │ (lifeboard)│  │  (同一 compose 网络)   │
-└────────────┘  └──────────────────────┘
+└────────────┘  └────┬─────────────────┘
+                      │ host.docker.internal:8088
+                 ┌────▼─────────────────┐
+                 │ reward-todo          │  localhost:8088
+                 │ 独立 Docker 项目       │
+                 └──────────────────────┘
 ```
 
 所有服务由一个 `docker-compose.yml` 统一管理，`docker compose up -d` 一键启动全部。
@@ -41,6 +46,14 @@ docker compose ps
 
 curl http://localhost:8000/api/health
 # 预期: {"status":"ok"}
+```
+
+如果需要联通待办-奖励只读页，还要单独启动 `reward-todo`：
+
+```bash
+cd ../reward-todo
+cp .env.example .env
+docker compose up -d
 ```
 
 ---
@@ -73,7 +86,21 @@ ezbookkeeping 已配置 `EBK_SECURITY_ENABLE_API_TOKEN=true`。
 - 支出分类占比环形图
 - 资产变化趋势面积图
 
-### 3.3 定时同步
+### 3.3 查看 Reward Todo 只读页
+
+访问 `今日 / 项目 / 奖励` 三页时，数据来自 `reward-todo` 的只读 API：
+
+```bash
+curl http://localhost:8000/api/reward-todo/summary
+curl "http://localhost:8000/api/reward-todo/today?date=2026-06-21"
+```
+
+预期：
+
+- `reward-todo` 正常时返回 `200` JSON
+- `reward-todo` 未启动或 token 不匹配时返回 `503`
+
+### 3.4 定时同步
 
 后端默认每 60 分钟自动同步一次（环境变量 `SYNC_INTERVAL_MINUTES` 可调）。
 
@@ -87,9 +114,11 @@ ezbookkeeping 已配置 `EBK_SECURITY_ENABLE_API_TOKEN=true`。
 |---|---|---|---|
 | backend 容器 | ezbookkeeping | `http://ezbookkeeping:8080` | Compose 内部 DNS |
 | backend 容器 | PostgreSQL | `db:5432` | Compose 内部 DNS |
+| backend 容器 | reward-todo | `http://host.docker.internal:8088` | 读取独立项目公开只读 API |
 | 浏览器 | 前端 | `localhost:5173` | 端口映射 |
 | 浏览器 | 后端 | `localhost:8000` | 端口映射 |
 | 浏览器 | ezbookkeeping | `localhost:8080` | 端口映射 |
+| 浏览器 | reward-todo | `localhost:8088` | 独立项目单入口 |
 
 ---
 
@@ -102,8 +131,8 @@ my-project/
 │   └── ezbookkeeping.db
 ├── backend/
 │   ├── app/
-│   │   ├── api/                ← API 路由 (dashboard, sync)
-│   │   ├── datasources/        ← 数据源插件
+│   │   ├── api/                ← API 路由 (dashboard, sync, reward_todo)
+│   │   ├── datasources/        ← 数据源插件与 reward-todo 代理
 │   │   │   ├── base.py         ← DataSourceBase 抽象接口
 │   │   │   └── ezbookkeeping.py ← ezbookkeeping 适配器
 │   │   ├── models/             ← SQLAlchemy 模型
@@ -127,13 +156,30 @@ my-project/
 | `DATABASE_URL` | PostgreSQL 连接串 | — |
 | `EZBOOKKEEPING_BASE_URL` | ezbookkeeping 地址 | `http://ezbookkeeping:8080` |
 | `EZBOOKKEEPING_TOKEN` | API 令牌（从 ezbookkeeping 网页端获取） | 必填 |
+| `REWARD_TODO_BASE_URL` | `reward-todo` 公开只读 API 地址 | `http://host.docker.internal:8088` |
+| `REWARD_TODO_READONLY_TOKEN` | `reward-todo` Bearer Token | `replace-me` |
+| `REWARD_TODO_APP_URL` | 前端跳转到 `reward-todo` 的地址 | `http://127.0.0.1:8088` |
 | `SYNC_INTERVAL_MINUTES` | 定时同步间隔（分钟） | `60` |
 
 所有环境变量在 `.env` 文件中配置，参考 `.env.example`。
 
 ---
 
-## 七、API 适配说明
+## 七、Reward Todo 集成说明
+
+`lifeboard` 不再暴露本地待办-奖励写接口，旧的 `/api/daily-tasks`、`/api/task-projects`、`/api/rewards/*` 已停止注册。当前仅保留只读代理：
+
+- `GET /api/reward-todo/summary`
+- `GET /api/reward-todo/today?date=YYYY-MM-DD`
+- `GET /api/reward-todo/ledger?limit=N`
+- `GET /api/reward-todo/projects`
+- `GET /api/reward-todo/templates?project_id=ID`
+
+前端三页已改成只读展示，并在页面顶部提供“前往 Reward Todo 管理”跳转按钮。
+
+---
+
+## 八、API 适配说明
 
 ezbookkeeping API 的实际路径格式为 `/api/v1/<resource>/*.json`，需要 `X-Timezone-Offset: 480` 请求头，ID 字段在响应中为字符串。
 
@@ -145,7 +191,7 @@ ezbookkeeping API 的实际路径格式为 `/api/v1/<resource>/*.json`，需要 
 
 ---
 
-## 八、扩展数据源
+## 九、扩展数据源
 
 仅需两步接入新数据源：
 

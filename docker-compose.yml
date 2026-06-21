@@ -37,11 +37,21 @@ services:
       DATABASE_URL: ${DATABASE_URL}
       EZBOOKKEEPING_BASE_URL: ${EZBOOKKEEPING_BASE_URL:-http://ezbookkeeping:8080}
       EZBOOKKEEPING_TOKEN: ${EZBOOKKEEPING_TOKEN?请先在 .env 文件中设置 EZBOOKKEEPING_TOKEN}
+      REWARD_TODO_BASE_URL: ${REWARD_TODO_BASE_URL:-http://host.docker.internal:8088}
+      REWARD_TODO_READONLY_TOKEN: ${REWARD_TODO_READONLY_TOKEN:-replace-me}
+      REWARD_TODO_APP_URL: ${REWARD_TODO_APP_URL:-http://127.0.0.1:8088}
     depends_on:
       db:
         condition: service_healthy
       ezbookkeeping:
         condition: service_started
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
     volumes:
       - ./backend:/app
 
@@ -51,6 +61,9 @@ services:
       - "5173:5173"
     depends_on:
       - backend
+    environment:
+      VITE_REWARD_TODO_APP_URL: ${VITE_REWARD_TODO_APP_URL:-http://127.0.0.1:8088}
+      VITE_API_PROXY: ${VITE_API_PROXY:-http://backend:8000}
     volumes:
       - ./frontend:/app
       - /app/node_modules

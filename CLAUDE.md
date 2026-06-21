@@ -2,7 +2,13 @@
 
 ## 项目概述
 
-LifeBoard — 个人财务数据中台。以 ezBookkeeping 为上游数据源，提供数据同步、分析仪表盘、MCP Server 自然语言查询。
+LifeBoard — 个人财务数据中台。以 ezBookkeeping 为财务上游数据源，提供数据同步、分析仪表盘、MCP Server 自然语言查询。
+
+待办-奖励模块已抽离为独立项目 `reward-todo`：
+
+- `reward-todo` 是待办-奖励数据唯一真源
+- `lifeboard` 仅通过 `/api/reward-todo/*` 代理路由只读接入
+- `lifeboard` 前端的 `今日 / 项目 / 奖励` 页面为只读视图，不再直接写本地待办奖励数据
 
 技术栈：FastAPI (Python) + React (TypeScript) + PostgreSQL + Docker Compose。
 
@@ -20,6 +26,9 @@ LifeBoard — 个人财务数据中台。以 ezBookkeeping 为上游数据源，
 ```bash
 # 启动所有服务
 docker compose up -d
+
+# 启动独立 reward-todo（在 ../reward-todo 仓库）
+cd ../reward-todo && docker compose up -d
 
 # 重启后端（代码修改后）
 docker compose restart backend
@@ -39,3 +48,10 @@ asyncio.run(test())
 # 运行后端测试
 docker compose exec backend pytest tests/ -v
 ```
+
+## Reward Todo 接入规则
+
+- 后端只读代理统一位于 `backend/app/api/reward_todo.py`
+- 代理配置来自 `REWARD_TODO_BASE_URL`、`REWARD_TODO_READONLY_TOKEN`、`REWARD_TODO_APP_URL`
+- `backend/app/api/task_reward.py` 文件仍保留，但**不得重新注册到 `app.main`**
+- 若要验证只读链路，优先使用 `curl http://localhost:8000/api/reward-todo/summary`

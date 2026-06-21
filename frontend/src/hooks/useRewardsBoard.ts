@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import {
-  fetchRewardLedger,
-  fetchRewardSummary,
-  spendReward,
+  fetchRewardTodoLedger,
+  fetchRewardTodoSummary,
 } from "../api/client";
 import type { RewardLedgerEntry, RewardSummary } from "../types";
 
@@ -18,19 +17,18 @@ export function useRewardsBoard() {
   const [ledger, setLedger] = useState<RewardLedgerEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
 
   const loadBoard = useCallback(async () => {
     setLoading(true);
     setError(null);
 
     try {
-      const [summaryData, ledgerData] = await Promise.all([
-        fetchRewardSummary(),
-        fetchRewardLedger(DEFAULT_LEDGER_LIMIT),
+      const [summaryData, ledgerPayload] = await Promise.all([
+        fetchRewardTodoSummary(),
+        fetchRewardTodoLedger(DEFAULT_LEDGER_LIMIT),
       ]);
       setSummary(summaryData);
-      setLedger(ledgerData);
+      setLedger(ledgerPayload.items);
     } catch (loadError) {
       console.error(loadError);
       setError("奖励页加载失败，请稍后重试。");
@@ -43,41 +41,13 @@ export function useRewardsBoard() {
     void loadBoard();
   }, [loadBoard]);
 
-  const submitSpend = useCallback(async (amountYuan: number, reason: string) => {
-    setSubmitting(true);
-    setError(null);
-
-    try {
-      await spendReward(amountYuan * 100, reason);
-
-      try {
-        const [summaryData, ledgerData] = await Promise.all([
-          fetchRewardSummary(),
-          fetchRewardLedger(DEFAULT_LEDGER_LIMIT),
-        ]);
-        setSummary(summaryData);
-        setLedger(ledgerData);
-      } catch (refreshError) {
-        console.error(refreshError);
-        const ledgerData = await fetchRewardLedger(DEFAULT_LEDGER_LIMIT);
-        setLedger(ledgerData);
-      }
-    } catch (submitError) {
-      console.error(submitError);
-      setError("奖励扣减失败，请稍后重试。");
-      throw submitError;
-    } finally {
-      setSubmitting(false);
-    }
-  }, []);
-
   return {
     summary,
     ledger,
     loading,
     error,
-    submitting,
-    submitSpend,
+    submitting: false,
+    submitSpend: undefined,
     reload: loadBoard,
   };
 }

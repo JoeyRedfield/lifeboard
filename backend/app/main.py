@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.database import init_db
-from app.api import dashboard, sync, task_reward
+from app.api import dashboard, reward_todo, sync
 from app.scheduler import start_scheduler
 from app.mcp_server import mcp
 
@@ -37,7 +37,7 @@ app.add_middleware(
 
 app.include_router(dashboard.router, prefix="/api")
 app.include_router(sync.router, prefix="/api")
-app.include_router(task_reward.router, prefix="/api")
+app.include_router(reward_todo.router, prefix="/api")
 
 
 @app.get("/api/health")

@@ -4,7 +4,8 @@ import type { DailyTask } from "../types";
 interface Props {
   tasks: DailyTask[];
   finishingTaskId: number | null;
-  onFinishTask: (taskId: number, actualDurationMinutes?: number) => Promise<void>;
+  onFinishTask?: (taskId: number, actualDurationMinutes?: number) => Promise<void>;
+  showActions?: boolean;
 }
 
 function formatYuan(amountInCent: number): string {
@@ -29,6 +30,7 @@ export default function DailyTaskList({
   tasks,
   finishingTaskId,
   onFinishTask,
+  showActions = true,
 }: Props) {
   const [expandedTaskId, setExpandedTaskId] = useState<number | null>(null);
   const [actualDurationValue, setActualDurationValue] = useState("");
@@ -52,7 +54,7 @@ export default function DailyTaskList({
   };
 
   const handleConfirm = async () => {
-    if (!expandedTask) return;
+    if (!expandedTask || !onFinishTask) return;
 
     const parsedDuration = parsePositiveInteger(actualDurationValue);
     const hasInvalidDuration =
@@ -113,6 +115,8 @@ export default function DailyTaskList({
 
                 {isCompleted ? (
                   <span className="daily-task-status">已完成</span>
+                ) : !showActions ? (
+                  <span className="daily-task-status">待完成</span>
                 ) : (
                   <button
                     type="button"
@@ -131,7 +135,7 @@ export default function DailyTaskList({
                 </div>
               ) : null}
 
-              {isExpanded ? (
+              {isExpanded && showActions ? (
                 <div className="task-complete-sheet">
                   <label className="task-complete-field">
                     <span>实际时长</span>

@@ -9,7 +9,8 @@ interface Props {
   summary: RewardSummary;
   ledger: RewardLedgerEntry[];
   submitting: boolean;
-  onSubmitSpend: (amountYuan: number, reason: string) => Promise<void>;
+  onSubmitSpend?: (amountYuan: number, reason: string) => Promise<void>;
+  isReadonly?: boolean;
 }
 
 export default function RewardLedgerPanel({
@@ -17,6 +18,7 @@ export default function RewardLedgerPanel({
   ledger,
   submitting,
   onSubmitSpend,
+  isReadonly = false,
 }: Props) {
   const [amountValue, setAmountValue] = useState("");
   const [reasonValue, setReasonValue] = useState("");
@@ -37,6 +39,7 @@ export default function RewardLedgerPanel({
 
     setSubmitError(null);
 
+    if (!onSubmitSpend) return;
     try {
       await onSubmitSpend(parsedAmount, reasonValue.trim());
       setAmountValue("");
@@ -66,7 +69,7 @@ export default function RewardLedgerPanel({
       </section>
 
       <div className="board-two-column">
-        <section className="card">
+        {isReadonly ? null : <section className="card">
           <div className="card-header">
             <h2 className="card-title">手动扣减</h2>
           </div>
@@ -109,7 +112,7 @@ export default function RewardLedgerPanel({
               {submitting ? "提交中..." : "确认扣减"}
             </button>
           </div>
-        </section>
+        </section>}
 
         <section className="card">
           <div className="card-header">

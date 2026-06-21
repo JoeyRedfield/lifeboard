@@ -8,15 +8,10 @@ export default function Projects() {
     templates,
     loading,
     error,
-    successMessage,
-    submittingProject,
-    submittingTemplate,
-    addingTemplateId,
     selectProject,
-    submitProject,
-    submitTemplate,
-    addTemplateToToday,
   } = useProjectsBoard();
+  const rewardTodoAppUrl =
+    import.meta.env.VITE_REWARD_TODO_APP_URL || "http://127.0.0.1:8088";
 
   return (
     <div>
@@ -29,20 +24,26 @@ export default function Projects() {
       ) : (
         <div className="projects-board">
           {error ? <div className="message message-error">{error}</div> : null}
-          {successMessage ? (
-            <div className="message message-success">{successMessage}</div>
-          ) : null}
+          <div className="message">
+            当前为只读视图。
+            <a
+              href={rewardTodoAppUrl}
+              className="link-button"
+              target="_blank"
+              rel="noreferrer"
+            >
+              前往 Reward Todo 管理
+            </a>
+          </div>
           <ProjectTemplatePanel
             projects={projects}
             selectedProjectId={selectedProjectId}
             templates={templates}
-            submittingProject={submittingProject}
-            submittingTemplate={submittingTemplate}
-            addingTemplateId={addingTemplateId}
+            submittingProject={false}
+            submittingTemplate={false}
+            addingTemplateId={null}
             onSelectProject={selectProject}
-            onCreateProject={submitProject}
-            onCreateTemplate={submitTemplate}
-            onAddToToday={addTemplateToToday}
+            isReadonly
           />
         </div>
       )}

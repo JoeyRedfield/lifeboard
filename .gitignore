@@ -17,6 +17,9 @@ dist/
 *.swp
 *.swo
 *~
+.codex/
+.playwright-cli/
+.superpowers/
 
 # OS
 .DS_Store
@@ -40,3 +43,9 @@ ezbookkeeping-data/
 
 # Logs
 *.log
+
+# Build cache
+*.tsbuildinfo
+
+# Local backup dirs
+backend/venv.py39.bak/

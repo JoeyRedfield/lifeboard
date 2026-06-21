@@ -1,19 +1,16 @@
 import axios from "axios";
 import dayjs from "dayjs";
 import type {
-  DailyTask,
-  DailyTaskCreatePayload,
   OverviewData,
   MonthlyTrendItem,
   CategoryBreakdownItem,
   AssetTrendItem,
-  RewardLedgerEntry,
+  RewardTodoLedgerPayload,
+  RewardTodoProjectsPayload,
   RewardSummary,
+  RewardTodoTemplatesPayload,
+  RewardTodoTodayPayload,
   SyncResult,
-  TaskProject,
-  TaskProjectCreatePayload,
-  TaskTemplate,
-  TaskTemplateCreatePayload,
 } from "../types";
 
 const api = axios.create({ baseURL: "/api" });
@@ -54,85 +51,40 @@ export async function fetchAssets(
   return data;
 }
 
-export async function fetchDailyTasks(
+export async function fetchRewardTodoToday(
   date = dayjs().format("YYYY-MM-DD")
-): Promise<DailyTask[]> {
-  const { data } = await api.get(`/daily-tasks?date=${date}`);
+): Promise<RewardTodoTodayPayload> {
+  const { data } = await api.get(`/reward-todo/today?date=${date}`);
   return data;
 }
 
-export async function fetchProjects(): Promise<TaskProject[]> {
-  const { data } = await api.get("/task-projects");
+export async function fetchRewardTodoProjects(): Promise<RewardTodoProjectsPayload> {
+  const { data } = await api.get("/reward-todo/projects");
   return data;
 }
 
-export async function createProject(
-  payload: TaskProjectCreatePayload
-): Promise<TaskProject> {
-  const { data } = await api.post("/task-projects", payload);
-  return data;
-}
-
-export async function fetchTaskTemplates(
+export async function fetchRewardTodoTemplates(
   projectId?: number
-): Promise<TaskTemplate[]> {
+): Promise<RewardTodoTemplatesPayload> {
   const params = new URLSearchParams();
   if (projectId !== undefined) {
     params.set("project_id", String(projectId));
   }
 
   const query = params.toString();
-  const { data } = await api.get(`/task-templates${query ? `?${query}` : ""}`);
+  const { data } = await api.get(`/reward-todo/templates${query ? `?${query}` : ""}`);
   return data;
 }
 
-export async function createTaskTemplate(
-  payload: TaskTemplateCreatePayload
-): Promise<TaskTemplate> {
-  const { data } = await api.post("/task-templates", payload);
+export async function fetchRewardTodoSummary(): Promise<RewardSummary> {
+  const { data } = await api.get("/reward-todo/summary");
   return data;
 }
 
-export async function createDailyTask(
-  payload: DailyTaskCreatePayload
-): Promise<DailyTask> {
-  const requestPayload = {
-    date: dayjs().format("YYYY-MM-DD"),
-    ...payload,
-  };
-  const { data } = await api.post("/daily-tasks", requestPayload);
-  return data;
-}
-
-export async function fetchRewardSummary(): Promise<RewardSummary> {
-  const { data } = await api.get("/rewards/summary");
-  return data;
-}
-
-export async function fetchRewardLedger(
+export async function fetchRewardTodoLedger(
   limit = 20
-): Promise<RewardLedgerEntry[]> {
-  const { data } = await api.get(`/rewards/ledger?limit=${limit}`);
-  return data;
-}
-
-export async function spendReward(
-  amount: number,
-  reason: string
-): Promise<RewardLedgerEntry> {
-  const { data } = await api.post("/rewards/spend", { amount, reason });
-  return data;
-}
-
-export async function completeDailyTask(
-  taskId: number,
-  actualDurationMinutes?: number
-): Promise<DailyTask> {
-  const payload =
-    actualDurationMinutes === undefined
-      ? {}
-      : { actual_duration_minutes: actualDurationMinutes };
-  const { data } = await api.post(`/daily-tasks/${taskId}/complete`, payload);
+): Promise<RewardTodoLedgerPayload> {
+  const { data } = await api.get(`/reward-todo/ledger?limit=${limit}`);
   return data;
 }
 

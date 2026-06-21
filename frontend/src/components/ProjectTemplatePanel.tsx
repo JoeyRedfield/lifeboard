@@ -13,13 +13,14 @@ interface Props {
   submittingTemplate: boolean;
   addingTemplateId: number | null;
   onSelectProject: (projectId: number) => void;
-  onCreateProject: (name: string) => Promise<void>;
-  onCreateTemplate: (payload: {
+  onCreateProject?: (name: string) => Promise<void>;
+  onCreateTemplate?: (payload: {
     name: string;
     defaultEstimatedDurationMinutes: number;
     defaultRewardAmount: number;
   }) => Promise<void>;
-  onAddToToday: (template: TaskTemplate) => Promise<void>;
+  onAddToToday?: (template: TaskTemplate) => Promise<void>;
+  isReadonly?: boolean;
 }
 
 export default function ProjectTemplatePanel({
@@ -33,6 +34,7 @@ export default function ProjectTemplatePanel({
   onCreateProject,
   onCreateTemplate,
   onAddToToday,
+  isReadonly = false,
 }: Props) {
   const [projectName, setProjectName] = useState("");
   const [templateName, setTemplateName] = useState("");
@@ -51,6 +53,7 @@ export default function ProjectTemplatePanel({
 
     setProjectFormError(null);
 
+    if (!onCreateProject) return;
     try {
       await onCreateProject(trimmedName);
       setProjectName("");
@@ -79,6 +82,7 @@ export default function ProjectTemplatePanel({
 
     setTemplateFormError(null);
 
+    if (!onCreateTemplate) return;
     try {
       await onCreateTemplate({
         name: trimmedName,
@@ -98,7 +102,7 @@ export default function ProjectTemplatePanel({
           <h2 className="card-title">任务项目</h2>
         </div>
 
-        <div className="project-create-form">
+        {isReadonly ? null : <div className="project-create-form">
           <label className="board-field">
             <span>项目名称</span>
             <input
@@ -122,7 +126,7 @@ export default function ProjectTemplatePanel({
           >
             {submittingProject ? "创建中..." : "创建项目"}
           </button>
-        </div>
+        </div>}
 
         {projects.length === 0 ? (
           <p className="panel-empty-state">还没有项目。</p>
@@ -154,7 +158,7 @@ export default function ProjectTemplatePanel({
           <h2 className="card-title">任务模板</h2>
         </div>
 
-        <div className="project-create-form">
+        {isReadonly ? null : <div className="project-create-form">
           <label className="board-field">
             <span>模板名称</span>
             <input
@@ -206,7 +210,7 @@ export default function ProjectTemplatePanel({
           >
             {submittingTemplate ? "创建中..." : "创建模板"}
           </button>
-        </div>
+        </div>}
 
         {templates.length === 0 ? (
           <p className="panel-empty-state">当前项目还没有任务模板。</p>
@@ -231,16 +235,18 @@ export default function ProjectTemplatePanel({
                 {template.notes ? (
                   <p className="template-item-notes">{template.notes}</p>
                 ) : null}
-                <div className="template-item-actions">
-                  <button
-                    type="button"
-                    className="btn"
-                    onClick={() => void onAddToToday(template)}
-                    disabled={addingTemplateId === template.id}
-                  >
-                    {addingTemplateId === template.id ? "加入中..." : "加入今日"}
-                  </button>
-                </div>
+                {isReadonly ? null : (
+                  <div className="template-item-actions">
+                    <button
+                      type="button"
+                      className="btn"
+                      onClick={() => onAddToToday && void onAddToToday(template)}
+                      disabled={addingTemplateId === template.id}
+                    >
+                      {addingTemplateId === template.id ? "加入中..." : "加入今日"}
+                    </button>
+                  </div>
+                )}
               </article>
             ))}
           </div>

@@ -48,6 +48,7 @@ export interface DailyTaskCreatePayload {
 export interface RewardSummary {
   current_balance: number;
   today_earned: number;
+  readOnly?: boolean;
 }
 
 export interface RewardLedgerEntry {
@@ -56,4 +57,24 @@ export interface RewardLedgerEntry {
   amount: number;
   reason: string;
   daily_task_id: number | null;
+  created_at?: string;
+}
+
+export interface RewardTodoTodayPayload extends RewardSummary {
+  tasks: DailyTask[];
+}
+
+export interface RewardTodoLedgerPayload {
+  readOnly: boolean;
+  items: RewardLedgerEntry[];
+}
+
+export interface RewardTodoProjectsPayload {
+  readOnly: boolean;
+  items: TaskProject[];
+}
+
+export interface RewardTodoTemplatesPayload {
+  readOnly: boolean;
+  items: TaskTemplate[];
 }
