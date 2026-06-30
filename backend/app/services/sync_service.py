@@ -123,46 +123,47 @@ async def sync_transactions(db: AsyncSession, source: DataSourceBase) -> int:
     if not data:
         return 0
 
-    new_count = 0
-    update_count = 0
+    item_ids = [item.id for item in data]
+    existing_result = await db.scalars(
+        select(Transaction).where(Transaction.id.in_(item_ids))
+    )
+    existing_by_id = {transaction.id: transaction for transaction in existing_result}
+
+    count = 0
     for item in data:
-        stmt = (
-            insert(Transaction)
-            .values(
-                id=item.id,
-                type=item.type,
-                category_id=item.category_id,
-                account_id=item.account_id,
-                related_account_id=item.related_account_id,
-                amount=item.amount,
-                related_amount=item.related_amount,
-                currency=item.currency,
-                transaction_time=item.transaction_time,
-                timezone_offset=item.timezone_offset,
-                comment=item.comment,
-                hide_amount=item.hide_amount,
-                geo_latitude=item.geo_latitude,
-                geo_longitude=item.geo_longitude,
-                tag_ids=item.tag_ids,
-            )
-            .on_conflict_do_update(
-                index_elements=["id"],
-                set_={
-                    "category_id": item.category_id,
-                    "comment": item.comment,
-                    "hide_amount": item.hide_amount,
-                    "geo_latitude": item.geo_latitude,
-                    "geo_longitude": item.geo_longitude,
-                    "tag_ids": item.tag_ids,
-                },
-            )
+        values = {
+            "id": item.id,
+            "type": item.type,
+            "category_id": item.category_id,
+            "account_id": item.account_id,
+            "related_account_id": item.related_account_id,
+            "amount": item.amount,
+            "related_amount": item.related_amount,
+            "currency": item.currency,
+            "transaction_time": item.transaction_time,
+            "timezone_offset": item.timezone_offset,
+            "comment": item.comment,
+            "hide_amount": item.hide_amount,
+            "geo_latitude": item.geo_latitude,
+            "geo_longitude": item.geo_longitude,
+            "tag_ids": item.tag_ids,
+        }
+        existing = existing_by_id.get(item.id)
+        if existing is not None and all(
+            getattr(existing, key) == value for key, value in values.items()
+        ):
+            continue
+
+        stmt = insert(Transaction).values(**values).on_conflict_do_update(
+            index_elements=["id"],
+            set_={key: value for key, value in values.items() if key != "id"},
         )
         await db.execute(stmt)
-        new_count += 1
+        count += 1
 
     await db.commit()
-    logger.info("同步交易完成: %d 条处理", new_count)
-    return new_count
+    logger.info("同步交易完成: %d 条新增/更新", count)
+    return count
 
 
 async def full_sync(db: AsyncSession, source: DataSourceBase) -> dict[str, int]:

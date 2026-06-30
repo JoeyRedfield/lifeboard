@@ -1,8 +1,10 @@
 import pytest
 from unittest.mock import AsyncMock
+from sqlalchemy import select
 
 from app.services.sync_service import sync_transactions
 from app.datasources.base import TransactionData
+from app.models import Transaction
 
 
 @pytest.mark.asyncio
@@ -59,3 +61,56 @@ async def test_sync_transactions_skips_existing(db):
     count = await sync_transactions(db, mock_source)
 
     assert count == 0
+
+
+@pytest.mark.asyncio
+async def test_sync_transactions_updates_changed_existing(db):
+    mock_source = AsyncMock()
+    original = TransactionData(
+        id=1,
+        type=2,
+        category_id=1,
+        account_id=1,
+        related_account_id=0,
+        amount=5000,
+        related_amount=0,
+        currency="CNY",
+        transaction_time=1700000000,
+        timezone_offset=8,
+        comment="午餐",
+        hide_amount=False,
+        geo_latitude=0,
+        geo_longitude=0,
+        tag_ids="",
+    )
+    changed = TransactionData(
+        id=1,
+        type=2,
+        category_id=2,
+        account_id=1,
+        related_account_id=0,
+        amount=5500,
+        related_amount=0,
+        currency="CNY",
+        transaction_time=1700000000,
+        timezone_offset=8,
+        comment="午餐修正",
+        hide_amount=False,
+        geo_latitude=0,
+        geo_longitude=0,
+        tag_ids="3",
+    )
+
+    mock_source.fetch_transactions.return_value = [original]
+    await sync_transactions(db, mock_source)
+
+    mock_source.fetch_transactions.return_value = [changed]
+    count = await sync_transactions(db, mock_source)
+    transaction = await db.scalar(select(Transaction).where(Transaction.id == 1))
+
+    assert count == 1
+    assert transaction is not None
+    assert transaction.category_id == 2
+    assert transaction.amount == 5500
+    assert transaction.comment == "午餐修正"
+    assert transaction.tag_ids == "3"

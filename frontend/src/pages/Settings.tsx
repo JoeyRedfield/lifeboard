@@ -14,7 +14,7 @@ export default function Settings() {
       const result = await triggerSync();
       if (result.success && result.result) {
         setMessage(
-          `同步完成 — 账户 ${result.result.accounts} 条, 分类 ${result.result.categories} 条, 交易 ${result.result.transactions} 条`
+          `同步完成 — 账户 ${result.result.accounts} 条, 分类 ${result.result.categories} 条, 标签 ${result.result.tags} 条, 交易 ${result.result.transactions} 条`
         );
         setMsgType("success");
       } else {

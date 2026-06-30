@@ -5,7 +5,7 @@ import CategoryPieChart from "../components/CategoryPieChart";
 import AssetTrendChart from "../components/AssetTrendChart";
 
 export default function Dashboard() {
-  const { overview, trends, categories, assets, loading } = useDashboard();
+  const { overview, trends, categories, assets, loading, error } = useDashboard();
 
   if (loading) {
     return (
@@ -18,6 +18,8 @@ export default function Dashboard() {
   return (
     <div>
       <h1 className="page-title">仪表盘</h1>
+
+      {error ? <div className="message message-error">{error}</div> : null}
 
       <OverviewCards data={overview} />
 

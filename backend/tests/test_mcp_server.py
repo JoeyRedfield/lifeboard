@@ -1,6 +1,9 @@
 """MCP Server 工具测试"""
 import asyncio
 
+import pytest
+
+from app.models import Category, Tag, Transaction
 from app.mcp_server import _yuan
 from app.mcp_server import mcp
 from app.mcp_server import (
@@ -59,3 +62,58 @@ def test_all_tools_are_importable():
     assert callable(get_asset_trends)
     assert callable(search_transactions)
     assert callable(list_accounts)
+
+
+class _SessionContext:
+    def __init__(self, session):
+        self.session = session
+
+    async def __aenter__(self):
+        return self.session
+
+    async def __aexit__(self, exc_type, exc, tb):
+        return None
+
+
+@pytest.mark.asyncio
+async def test_search_transactions_matches_tag_id_exactly(db, monkeypatch):
+    def session_factory():
+        return _SessionContext(db)
+
+    monkeypatch.setattr("app.mcp_server.async_session", session_factory)
+
+    db.add(Category(id=1, name="日常", type=3))
+    db.add(Tag(id=1, name="餐饮", group_id=0, display_order=0, hidden=False))
+    db.add(Tag(id=10, name="交通", group_id=0, display_order=0, hidden=False))
+    db.add(
+        Transaction(
+            id=1,
+            type=3,
+            category_id=1,
+            account_id=1,
+            amount=1200,
+            currency="CNY",
+            transaction_time=1700000000,
+            comment="午餐",
+            tag_ids="1",
+        )
+    )
+    db.add(
+        Transaction(
+            id=2,
+            type=3,
+            category_id=1,
+            account_id=1,
+            amount=300,
+            currency="CNY",
+            transaction_time=1700000001,
+            comment="地铁",
+            tag_ids="10",
+        )
+    )
+    await db.commit()
+
+    result = await search_transactions(tag="餐饮", limit=10)
+
+    assert "午餐" in result
+    assert "地铁" not in result

@@ -30,6 +30,7 @@ export interface SyncResult {
   result?: {
     accounts: number;
     categories: number;
+    tags: number;
     transactions: number;
   };
   error?: string;

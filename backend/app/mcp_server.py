@@ -369,9 +369,16 @@ async def search_transactions(
         if category:
             conditions.append(Category.name.ilike(f"%{category}%"))
         if tag_filter_ids:
-            tag_conditions = [
-                Transaction.tag_ids.ilike(f"%{tid}%") for tid in tag_filter_ids
-            ]
+            tag_conditions = []
+            for tid in tag_filter_ids:
+                tag_conditions.extend(
+                    [
+                        Transaction.tag_ids == tid,
+                        Transaction.tag_ids.ilike(f"{tid},%"),
+                        Transaction.tag_ids.ilike(f"%,{tid}"),
+                        Transaction.tag_ids.ilike(f"%,{tid},%"),
+                    ]
+                )
             conditions.append(or_(*tag_conditions))
         if conditions:
             query = query.where(and_(*conditions))

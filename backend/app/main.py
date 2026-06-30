@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.database import init_db
 from app.api import dashboard, reward_todo, sync
-from app.scheduler import start_scheduler
+from app.scheduler import start_scheduler, stop_scheduler
 from app.mcp_server import mcp
 
 mcp_app = mcp.http_app()
@@ -17,7 +17,10 @@ async def lifespan(app: FastAPI):
     async with mcp_app.lifespan(app):
         await init_db()
         start_scheduler()
-        yield
+        try:
+            yield
+        finally:
+            stop_scheduler()
 
 
 app = FastAPI(title="LifeBoard API", version="0.1.0", lifespan=lifespan)

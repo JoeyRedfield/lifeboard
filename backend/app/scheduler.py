@@ -15,6 +15,9 @@ def start_scheduler():
     if not settings.ezbookkeeping_base_url or not settings.ezbookkeeping_token:
         logger.warning("ezbookkeeping 未配置，跳过定时同步")
         return
+    if scheduler.running:
+        logger.info("定时同步已在运行，跳过重复启动")
+        return
 
     @scheduler.scheduled_job(
         "interval",
@@ -32,3 +35,9 @@ def start_scheduler():
 
     scheduler.start()
     logger.info("定时同步已启动，间隔 %d 分钟", settings.sync_interval_minutes)
+
+
+def stop_scheduler():
+    if scheduler.running:
+        scheduler.shutdown(wait=False)
+        logger.info("定时同步已停止")

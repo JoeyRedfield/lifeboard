@@ -2,7 +2,7 @@ import pytest
 from datetime import datetime, timezone, timedelta
 
 from app.models import Transaction, Account, Category
-from app.services.analytics_service import get_overview
+from app.services.analytics_service import TYPE_EXPENSE, TYPE_INCOME, get_overview
 
 
 @pytest.mark.asyncio
@@ -16,7 +16,7 @@ async def test_get_overview_current_month(db):
     db.add(
         Transaction(
             id=1,
-            type=2,
+            type=TYPE_EXPENSE,
             category_id=1,
             account_id=1,
             amount=5000,
@@ -27,7 +27,7 @@ async def test_get_overview_current_month(db):
     db.add(
         Transaction(
             id=2,
-            type=1,
+            type=TYPE_INCOME,
             category_id=1,
             account_id=1,
             amount=10000,
